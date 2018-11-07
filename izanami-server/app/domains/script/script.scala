@@ -18,7 +18,19 @@ import store._
 
 import scala.concurrent.ExecutionContext
 
-case class Script(script: String)
+sealed trait Script
+case class JavascriptScript(script: String) extends Script
+case class ScalaScript(script: String)      extends Script
+
+object Script {
+
+  type ScriptCache[F[_]] = CacheService[F, String, FeatureScript]
+
+  object ScriptCache {
+    def apply[F[_]](implicit s: ScriptCache[F]): ScriptCache[F] = s
+  }
+
+}
 
 trait RunnableScript[F[_], S] {
   def run(script: S, context: JsObject, env: Env): F[Boolean]
@@ -49,6 +61,14 @@ trait GlobalScriptService[F[_]] {
   def importData(implicit ec: ExecutionContext): Flow[(String, JsValue), ImportResult, NotUsed]
 }
 
+trait CacheService[F[_], K, T] {
+
+  def get(id: K): F[Option[T]]
+
+  def set(id: K, value: T): F[Unit]
+
+}
+
 object GlobalScriptService {
 
   val eventAdapter = Flow[IzanamiEvent].collect {
@@ -61,7 +81,6 @@ class GlobalScriptServiceImpl[F[_]: Effect](jsonStore: JsonDataStore[F], eventSt
     extends GlobalScriptService[F]
     with EitherTSyntax[F] {
 
-  import Script._
   import ScriptInstances._
   import libs.streams.syntax._
   import GlobalScript._

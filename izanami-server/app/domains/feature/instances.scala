@@ -4,13 +4,14 @@ import java.time.{LocalDateTime, ZoneId}
 import cats.Applicative
 import cats.effect.{Async, Effect}
 import domains.{AuthInfo, IsAllowed, Key}
-import domains.script.{GlobalScript, GlobalScriptService, Script, ScriptInstances}
+import domains.script._
 import env.Env
 import shapeless.syntax
 import store.Result
 import store.Result.Result
 import FeatureType._
 import domains.feature.Feature.FeatureKey
+import domains.script.Script.ScriptCache
 
 import scala.util.hashing.MurmurHash3
 
@@ -62,7 +63,9 @@ object GlobalScriptFeatureInstances {
 
   implicit val format: Format[GlobalScriptFeature] = Format(reads, writes)
 
-  def isActive[F[_]: Async](implicit gs: GlobalScriptService[F]): IsActive[F, GlobalScriptFeature] =
+  def isActive[F[_]: Async: ScriptCache](
+      implicit gs: GlobalScriptService[F]
+  ): IsActive[F, GlobalScriptFeature] =
     new IsActive[F, GlobalScriptFeature] {
       import domains.script.syntax._
       import domains.script.ScriptInstances._
@@ -99,7 +102,7 @@ object ScriptFeatureInstances {
 
   implicit val format: Format[ScriptFeature] = Format(reads, writes)
 
-  def isActive[F[_]: Async]: IsActive[F, ScriptFeature] = new IsActive[F, ScriptFeature] {
+  def isActive[F[_]: Async: ScriptCache]: IsActive[F, ScriptFeature] = new IsActive[F, ScriptFeature] {
     import cats.implicits._
     import domains.script.syntax._
     import domains.script.ScriptInstances._
@@ -237,7 +240,7 @@ object FeatureInstances {
     override def isAllowed(value: Feature)(auth: Option[AuthInfo]): Boolean = Key.isAllowed(value.id)(auth)
   }
 
-  implicit def isActive[F[_]: Effect](implicit gs: GlobalScriptService[F]): IsActive[F, Feature] =
+  implicit def isActive[F[_]: Effect: ScriptCache](implicit gs: GlobalScriptService[F]): IsActive[F, Feature] =
     new IsActive[F, Feature] {
       override def isActive(feature: Feature, context: JsObject, env: Env): F[Result[Boolean]] =
         feature match {

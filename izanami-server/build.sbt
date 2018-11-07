@@ -15,11 +15,13 @@ val akkaVersion    = "2.5.17"
 val metricsVersion = "4.0.2"
 
 resolvers ++= Seq(
-  Resolver.jcenterRepo
+  Resolver.jcenterRepo,
+  Resolver.sonatypeRepo("releases")
 )
 
 libraryDependencies ++= Seq(
   ws,
+  ehcache,
   "de.svenkubiak"            % "jBCrypt"                        % "0.4.1", //  ISC/BSD
   "com.auth0"                % "java-jwt"                       % "3.3.0", // MIT license
   "org.gnieh"                %% "diffson-play-json"             % "3.0.0", //
@@ -58,6 +60,8 @@ libraryDependencies ++= Seq(
   "org.apache.logging.log4j" % "log4j-api"                      % "2.8.2" % Test, // MIT license
   "org.apache.logging.log4j" % "log4j-core"                     % "2.8.2" % Test // MIT license
 )
+
+addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.8")
 
 scalacOptions ++= Seq(
   "-Ypartial-unification",
