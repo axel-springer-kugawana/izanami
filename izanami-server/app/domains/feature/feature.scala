@@ -27,7 +27,7 @@ sealed trait Feature {
 
   def enabled: Boolean
 
-  def toJson(active: Boolean) =
+  def toJson(active: Boolean): JsValue =
     FeatureInstances.format.writes(this).as[JsObject] ++ Json.obj("active" -> active)
 
 }

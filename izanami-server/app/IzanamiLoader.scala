@@ -90,7 +90,7 @@ package object modules {
     lazy val metrics: Metrics                    = wire[Metrics]
     lazy val metricsController: MetricController = wire[MetricController]
 
-    implicit val scriptCache: ScriptCache[IO] = new PlayScriptCache[IO](defaultCacheApi)
+    implicit lazy val scriptCache: ScriptCache[IO] = new PlayScriptCache[IO](defaultCacheApi)
 
     /* Event store */
     // format: off
