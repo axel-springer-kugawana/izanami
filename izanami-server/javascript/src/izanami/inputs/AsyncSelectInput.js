@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import Select from 'react-select-plus';
+import Select from 'react-select';
 
 export class AsyncSelectInput extends Component {
 

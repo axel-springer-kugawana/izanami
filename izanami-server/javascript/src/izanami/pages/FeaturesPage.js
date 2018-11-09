@@ -10,7 +10,7 @@ const DATE_FORMAT2 = 'YYYY-MM-DD HH:mm:ss';
 
 class FeatureParameters extends Component {
 
-  defaultScriptValue = `/**
+  defaultJavascriptScriptValue = `/**
  * context:  a JSON object containing app specific value
  *           to evaluate the state of the feature
  * enabled:  a callback to mark the feature as active
@@ -26,6 +26,28 @@ function enabled(context, enabled, disabled, http) {
   return disabled();
 }`;
 
+
+  defaultScalaScriptValue = `/**
+ * context:  a JSON object containing app specific value
+ *           to evaluate the state of the feature
+ * enabled:  a callback to mark the feature as active
+ *           for this request
+ * disabled: a callback to mark the feature as inactive
+ *           for this request
+ * http:     a http client
+ */
+  override def enabled(context: play.api.libs.json.JsObject,
+              enabled: () => Unit,
+              disabled: () => Unit,
+              http: play.api.libs.ws.WSClient)(implicit ec: ExecutionContext): Unit = {
+    if ( (context \\ "user").asOpt[String].contains("john.doe@gmail.com")) {
+      enabled()
+    } else {
+      disabled()
+    }
+}`;
+
+
   componentWillReceiveProps(nextProps) {
     const oldStrategy = this.props.source.activationStrategy;
     const nextStrategy = nextProps.source.activationStrategy;
@@ -40,7 +62,7 @@ function enabled(context, enabled, disabled, http) {
         this.props.onChange({ percentage: undefined });
       }
       if (nextStrategy === 'SCRIPT') {
-        this.props.onChange({ script: this.defaultScriptValue });
+        this.props.onChange({ script: {type: 'javascript', script: this.defaultScriptValue } });
       } else if (nextStrategy === 'RELEASE_DATE') {
         this.props.onChange({ releaseDate: moment().format(DATE_FORMAT) });
       } else if (nextStrategy === 'PERCENTAGE') {
@@ -78,7 +100,23 @@ function enabled(context, enabled, disabled, http) {
       />;
     }
     if (this.props.source.activationStrategy === 'SCRIPT') {
-      return <CodeInput parse={false} label="Script" value={this.props.value.script || this.defaultScriptValue} onChange={v => this.props.onChange({ script: v })} />;
+      return <CodeInput
+        parse={false} 
+        label="Script"
+        languages={{
+          javascript: {
+            label: 'Javascript',
+            snippet:this.defaultJavascriptScriptValue
+          },
+          scala: {
+            label: 'Scala',
+            snippet:this.defaultScalaScriptValue
+          }
+        }}
+        default={"javascript"}
+        value={this.props.value.script}
+        onChange={ ({type, script}) => this.props.onChange({script:{ type, script }})}
+      />;
     }
     if (this.props.source.activationStrategy === 'GLOBAL_SCRIPT') {
       return <AsyncSelectInput

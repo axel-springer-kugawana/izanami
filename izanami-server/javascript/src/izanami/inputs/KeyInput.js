@@ -85,7 +85,9 @@ export class KeyInput extends Component {
   }
 
   keyboard = e => {
-    if ((e.keyCode === keys.tab) || (e.keyCode === keys.enter)) {
+    if (((e.keyCode === keys.tab) || (e.keyCode === keys.enter)) &&
+      ((this.inputRef && this.inputRef === document.activeElement) || (this.editedRef && this.editedRef === document.activeElement))
+    ) {
       e.preventDefault();
       if (this.state.textValue) {
         const segments = [...this.state.segments, ...this.state.textValue.split(":").map(s => s.trim()).filter(s => !!s)];
@@ -233,7 +235,10 @@ export class KeyInput extends Component {
                         <input
                           autoFocus="true"
                           type="text"
-                          ref={e => e && e.setSelectionRange(99999, 99999)}
+                          ref={e => {
+                            e && e.setSelectionRange(99999, 99999);
+                            this.editedRef = e;
+                          }}
                           className="key-picker-edited-input"
                           size={`${part.length}`}
                           onChange={this.changeEditedValue(i)}
